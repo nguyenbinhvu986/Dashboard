@@ -184,7 +184,7 @@ function CartTable() {
   return (
     <>
       <div className="header">
-        <h1>🛒 Dashboard Quản Lý Giỏ Hàng</h1>
+        <h1>🛒 Dashboard Quản Lý Giỏ Hàn</h1>
         <button className="btn" onClick={toggleTheme}>
           {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
         </button>
