@@ -7,6 +7,8 @@ import {
   type ReactNode,
 } from "react";
 import "./index.css";
+import { KPIStats } from "./KPIStats.tsx";
+import { FilterBar } from "./FilterBar";
 
 type Theme = "light" | "dark";
 
@@ -159,13 +161,6 @@ function CartTable() {
     return true;
   });
 
-  const totalRevenue = carts.reduce(
-    (sum, cart) => sum + cart.discountedTotal,
-    0,
-  );
-  const totalOrders = carts.length;
-  const productsSold = carts.reduce((sum, cart) => sum + cart.totalQuantity, 0);
-
   const handleModeChange = (mode: string) => {
     setSearchMode(mode);
     setSearchQuery("");
@@ -180,87 +175,38 @@ function CartTable() {
   const bestSellerProduct = carts
     .flatMap((c) => c.products)
     .find((p) => p.id === bestSellerId);
+  const stats = {
+    totalRevenue: carts.reduce((sum, cart) => sum + cart.discountedTotal, 0),
+    totalOrders: carts.length,
+    productsSold: carts.reduce((sum, cart) => sum + cart.totalQuantity, 0),
+  };
 
   return (
     <>
       <div className="header">
-        <h1>🛒 Dashboard Quản Lý Giỏ Hàn</h1>
+        <h1>🛒 Dashboard Quản Lý Giỏ Hành</h1>
         <button className="btn" onClick={toggleTheme}>
           {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
         </button>
       </div>
+      <KPIStats
+        totalRevenue={stats.totalRevenue}
+        totalOrders={stats.totalOrders}
+        productsSold={stats.productsSold}
+      />
 
-      <div className="main">
-        <div className="name">
-          <strong>TỔNG DOANH THU (ĐÃ GIẢM GIÁ)</strong>
-          <div className="value green">${totalRevenue.toFixed(2)}</div>
-        </div>
-        <div className="name">
-          <strong>TỔNG SỐ ĐƠN HÀNG</strong>
-          <div className="value black">{totalOrders}</div>
-        </div>
-        <div className="name">
-          <strong>SẢN PHẨM ĐÃ BÁN</strong>
-          <div className="value orange">{productsSold}</div>
-        </div>
-      </div>
-
-      <div className="search-container">
-        <select
-          className="search-mode-select"
-          value={searchMode}
-          onChange={(e) => handleModeChange(e.target.value)}
-        >
-          <option value="userId">Theo User ID</option>
-          <option value="productId">Theo ID sản phẩm</option>
-          <option value="priceRange">Theo khoảng giá</option>
-          <option value="topSpender">Đơn hàng chi tiêu nhiều nhất</option>
-          <option value="bestSeller">Sản phẩm bán chạy nhất</option>
-        </select>
-
-        {searchMode === "priceRange" && (
-          <>
-            <input
-              type="number"
-              className="search-input"
-              placeholder="Giá từ..."
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-            />
-            <input
-              type="number"
-              className="search-input"
-              placeholder="Đến..."
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-            />
-          </>
-        )}
-
-        {(searchMode === "userId" || searchMode === "productId") && (
-          <>
-            <span className="search-icon">🔍</span>
-            <input
-              ref={searchInputRef}
-              type="text"
-              className="search-input"
-              placeholder={
-                searchMode === "userId"
-                  ? "Nhập User ID..."
-                  : "Nhập ID sản phẩm..."
-              }
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </>
-        )}
-
-        {searchMode === "bestSeller" && bestSellerProduct && (
-          <span className="best-seller-info">
-            {bestSellerProduct.title} (ID: {bestSellerProduct.id})
-          </span>
-        )}
-      </div>
+      <FilterBar
+        searchMode={searchMode}
+        searchQuery={searchQuery}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
+        bestSellerProduct={bestSellerProduct}
+        searchInputRef={searchInputRef}
+        onModeChange={handleModeChange}
+        onSearchChange={setSearchQuery}
+        onMinPriceChange={setMinPrice}
+        onMaxPriceChange={setMaxPrice}
+      />
 
       <div className="data fix">
         <div>Cart ID</div>
