@@ -13,7 +13,7 @@ type FilterBarProps = {
   searchQuery: string;
   minPrice: string;
   maxPrice: string;
-  bestSellerProduct: CartProduct | undefined;
+  bestSellerProduct: CartProduct | null | undefined;
   searchInputRef: { current: HTMLInputElement | null };
   onModeChange: (mode: string) => void;
   onSearchChange: (value: string) => void;

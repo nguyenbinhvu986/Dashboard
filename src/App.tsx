@@ -9,9 +9,11 @@ import {
 import "./index.css";
 import { KPIStats } from "./KPIStats.tsx";
 import { FilterBar } from "./FilterBar";
+import { CartTables } from "./CartTable";
+import { CartDetailModal } from "./CartDetailModal";
 
 type Theme = "light" | "dark";
-
+//
 interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
@@ -93,21 +95,18 @@ function CartTable() {
         setLoading(false);
       })
       .catch((err) => {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Không thể tải dữ liệu giỏ hàng.",
-        );
+        setError("Không thể tải dữ liệu giỏ hàng.");
         setLoading(false);
       });
   }, []);
-
+  // Tự động focus vào ô tìm kiếm khi component được render
   useEffect(() => {
     searchInputRef.current?.focus();
   }, []);
-
-  const getBestSellerProductId = (): number | null => {
+  //sản phẩm bán chạy nhất
+  const getBestSellerProduct = (): CartProduct | null => {
     const quantityMap = new Map<number, number>();
+    const productMap = new Map<number, CartProduct>();
 
     carts
       .flatMap((cart) => cart.products)
@@ -116,6 +115,9 @@ function CartTable() {
           product.id,
           (quantityMap.get(product.id) ?? 0) + product.quantity,
         );
+        if (!productMap.has(product.id)) {
+          productMap.set(product.id, product);
+        }
       });
 
     let bestProductId: number | null = null;
@@ -128,9 +130,15 @@ function CartTable() {
       }
     });
 
-    return bestProductId;
+    if (bestProductId === null) {
+      return null;
+    }
+    return productMap.get(bestProductId) ?? null;
   };
+  const bestSellerProduct: CartProduct | null =
+    searchMode === "bestSeller" ? getBestSellerProduct() : null;
 
+  //lọc giỏ hàng dựa trên chế độ tìm kiếm và các điều kiện khác
   const filteredCarts = carts.filter((cart) => {
     const query = searchQuery.trim();
 
@@ -154,8 +162,7 @@ function CartTable() {
     }
 
     if (searchMode === "bestSeller") {
-      const bestId = getBestSellerProductId();
-      return cart.products.some((p) => p.id === bestId);
+      return cart.products.some((p) => p.id === bestSellerProduct?.id);
     }
 
     return true;
@@ -170,11 +177,6 @@ function CartTable() {
     console.log("Số lần đổi bộ lọc:", filterChangeCountRef.current);
   };
 
-  const bestSellerId =
-    searchMode === "bestSeller" ? getBestSellerProductId() : null;
-  const bestSellerProduct = carts
-    .flatMap((c) => c.products)
-    .find((p) => p.id === bestSellerId);
   const stats = {
     totalRevenue: carts.reduce((sum, cart) => sum + cart.discountedTotal, 0),
     totalOrders: carts.length,
@@ -194,7 +196,6 @@ function CartTable() {
         totalOrders={stats.totalOrders}
         productsSold={stats.productsSold}
       />
-
       <FilterBar
         searchMode={searchMode}
         searchQuery={searchQuery}
@@ -207,85 +208,17 @@ function CartTable() {
         onMinPriceChange={setMinPrice}
         onMaxPriceChange={setMaxPrice}
       />
-
-      <div className="data fix">
-        <div>Cart ID</div>
-        <div>User ID</div>
-        <div>Số loại SP</div>
-        <div>Tổng số lượng</div>
-        <div>Tổng tiền gốc</div>
-        <div>Thực thu (Sau giảm)</div>
-        <div>Hành động</div>
-      </div>
-
       {loading && <div>Đang tải dữ liệu...</div>}
-
       {error && <div>{error}</div>}
-
       {!loading && !error && (
-        <div className="cart-table-wrapper">
-          {filteredCarts.length === 0 ? (
-            <div className="no-result">Không tìm thấy kết quả phù hợp.</div>
-          ) : (
-            filteredCarts.map((cart) => (
-              <div className="data" key={cart.id}>
-                <div>#{cart.id}</div>
-                <div>User {cart.userId}</div>
-                <div>{cart.totalProducts}</div>
-                <div>{cart.totalQuantity}</div>
-                <div>${cart.total.toFixed(2)}</div>
-                <div className="discounted">
-                  ${cart.discountedTotal.toFixed(2)}
-                </div>
-                <div>
-                  <button
-                    className="detail-btn"
-                    onClick={() => setSelectedCart(cart)}
-                  >
-                    Chi tiết
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <CartTables carts={filteredCarts} onSelectCart={setSelectedCart} />
       )}
-
+      // Modal hiển thị chi tiết giỏ hàng
       {selectedCart && (
-        <div className="modal-overlay" onClick={() => setSelectedCart(null)}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <h2>
-              Chi tiết giỏ hàng #{selectedCart.id} (Khách hàng{" "}
-              {selectedCart.userId})
-            </h2>
-
-            {selectedCart.products.map((product) => (
-              <div className="modal-product-row" key={product.id}>
-                <img
-                  src={product.thumbnail}
-                  alt={product.title}
-                  className="modal-product-thumb"
-                />
-                <div className="modal-product-info">
-                  <strong>{product.title}</strong>
-                  <span>
-                    SL: {product.quantity} x ${product.price.toFixed(2)}
-                  </span>
-                </div>
-                <div className="modal-product-total">
-                  ${product.total.toFixed(2)}
-                </div>
-              </div>
-            ))}
-
-            <button
-              className="modal-close-btn"
-              onClick={() => setSelectedCart(null)}
-            >
-              Đóng
-            </button>
-          </div>
-        </div>
+        <CartDetailModal
+          cart={selectedCart}
+          onClose={() => setSelectedCart(null)}
+        />
       )}
     </>
   );
