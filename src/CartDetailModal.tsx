@@ -1,22 +1,4 @@
-interface CartProduct {
-  id: number;
-  title: string;
-  price: number;
-  quantity: number;
-  total: number;
-  discountedTotal: number;
-  thumbnail: string;
-}
-
-interface Cart {
-  id: number;
-  userId: number;
-  total: number;
-  discountedTotal: number;
-  totalProducts: number;
-  totalQuantity: number;
-  products: CartProduct[];
-}
+import type { Cart } from "./type";
 
 type CartDetailModalProps = {
   cart: Cart;

@@ -11,17 +11,10 @@ import { KPIStats } from "./KPIStats.tsx";
 import { FilterBar } from "./FilterBar";
 import { CartTables } from "./CartTable";
 import { CartDetailModal } from "./CartDetailModal";
-
+import type { CartProduct, Cart } from "./type";
 type Theme = "light" | "dark";
-//
-interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
-}
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-function ThemeProvider({ children }: { children: ReactNode }) {
+function CartTable() {
   const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
@@ -31,40 +24,6 @@ function ThemeProvider({ children }: { children: ReactNode }) {
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-}
-
-function useTheme() {
-  return useContext(ThemeContext) as ThemeContextType;
-}
-
-interface CartProduct {
-  id: number;
-  title: string;
-  price: number;
-  quantity: number;
-  total: number;
-  discountedTotal: number;
-  thumbnail: string;
-}
-
-interface Cart {
-  id: number;
-  userId: number;
-  total: number;
-  discountedTotal: number;
-  totalProducts: number;
-  totalQuantity: number;
-  products: CartProduct[];
-}
-
-function CartTable() {
-  const { theme, toggleTheme } = useTheme();
 
   const [carts, setCarts] = useState<Cart[]>([]);
   const [selectedCart, setSelectedCart] = useState<Cart | null>(null);
@@ -225,11 +184,7 @@ function CartTable() {
 }
 
 function App() {
-  return (
-    <ThemeProvider>
-      <CartTable />
-    </ThemeProvider>
-  );
+  return <CartTable />;
 }
 
 export default App;
