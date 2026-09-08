@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import "./index.css";
 import { KPIStats } from "./KPIStats.tsx";
 import { FilterBar } from "./FilterBar";
@@ -63,7 +56,10 @@ function CartTable() {
     searchInputRef.current?.focus();
   }, []);
   //sản phẩm bán chạy nhất
-  const getBestSellerProduct = (): CartProduct | null => {
+  const bestSellerProduct: CartProduct | null = useMemo(() => {
+    if (searchMode !== "bestSeller") {
+      return null;
+    }
     const quantityMap = new Map<number, number>();
     const productMap = new Map<number, CartProduct>();
 
@@ -93,9 +89,7 @@ function CartTable() {
       return null;
     }
     return productMap.get(bestProductId) ?? null;
-  };
-  const bestSellerProduct: CartProduct | null =
-    searchMode === "bestSeller" ? getBestSellerProduct() : null;
+  }, [carts, searchMode]);
 
   //lọc giỏ hàng dựa trên chế độ tìm kiếm và các điều kiện khác
   const filteredCarts = carts.filter((cart) => {
@@ -127,14 +121,14 @@ function CartTable() {
     return true;
   });
 
-  const handleModeChange = (mode: string) => {
+  const handleModeChange = useCallback((mode: string) => {
     setSearchMode(mode);
     setSearchQuery("");
     setMinPrice("");
     setMaxPrice("");
     filterChangeCountRef.current += 1;
     console.log("Số lần đổi bộ lọc:", filterChangeCountRef.current);
-  };
+  }, []);
 
   const stats = {
     totalRevenue: carts.reduce((sum, cart) => sum + cart.discountedTotal, 0),
