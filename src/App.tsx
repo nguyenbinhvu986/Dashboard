@@ -124,14 +124,14 @@ function CartTable() {
       return true;
     });
   }, [carts, searchMode, searchQuery, minPrice, maxPrice]);
-  const handleModeChange = useCallback((mode: string) => {
+  const handleModeChange = (mode: string) => {
     setSearchMode(mode);
     setSearchQuery("");
     setMinPrice("");
     setMaxPrice("");
     filterChangeCountRef.current += 1;
     console.log("Số lần đổi bộ lọc:", filterChangeCountRef.current);
-  }, []);
+  };
 
   const stats = useMemo(() => {
     return {
