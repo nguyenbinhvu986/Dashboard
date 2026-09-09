@@ -112,10 +112,10 @@ function CartTable() {
         return cart.discountedTotal >= min && cart.discountedTotal <= max;
       }
 
-      const maxSpending = useMemo(() => {
-        if (searchMode !== "topSpender" || carts.length === 0) return null;
-        return Math.max(...carts.map((c) => c.discountedTotal));
-      }, [carts, searchMode]);
+      if (searchMode === "topSpender") {
+        const maxSpending = Math.max(...carts.map((c) => c.discountedTotal));
+        return cart.discountedTotal === maxSpending;
+      }
 
       if (searchMode === "bestSeller") {
         return cart.products.some((p) => p.id === bestSellerProduct?.id);
