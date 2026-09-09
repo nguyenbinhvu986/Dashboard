@@ -92,35 +92,38 @@ function CartTable() {
   }, [carts, searchMode]);
 
   //lọc giỏ hàng dựa trên chế độ tìm kiếm và các điều kiện khác
-  const filteredCarts = carts.filter((cart) => {
-    const query = searchQuery.trim();
+  const filteredCarts = useMemo(() => {
+    return carts.filter((cart) => {
+      const query = searchQuery.trim();
 
-    if (searchMode === "userId") {
-      return query === "" || cart.userId === Number(query);
-    }
+      if (searchMode === "userId") {
+        return query === "" || cart.userId === Number(query);
+      }
 
-    if (searchMode === "productId") {
-      return query === "" || cart.products.some((p) => String(p.id) === query);
-    }
+      if (searchMode === "productId") {
+        return (
+          query === "" || cart.products.some((p) => String(p.id) === query)
+        );
+      }
 
-    if (searchMode === "priceRange") {
-      const min = minPrice === "" ? 0 : Number(minPrice);
-      const max = maxPrice === "" ? Infinity : Number(maxPrice);
-      return cart.discountedTotal >= min && cart.discountedTotal <= max;
-    }
+      if (searchMode === "priceRange") {
+        const min = minPrice === "" ? 0 : Number(minPrice);
+        const max = maxPrice === "" ? Infinity : Number(maxPrice);
+        return cart.discountedTotal >= min && cart.discountedTotal <= max;
+      }
 
-    if (searchMode === "topSpender") {
-      const maxSpending = Math.max(...carts.map((c) => c.discountedTotal));
-      return cart.discountedTotal === maxSpending;
-    }
+      if (searchMode === "topSpender") {
+        const maxSpending = Math.max(...carts.map((c) => c.discountedTotal));
+        return cart.discountedTotal === maxSpending;
+      }
 
-    if (searchMode === "bestSeller") {
-      return cart.products.some((p) => p.id === bestSellerProduct?.id);
-    }
+      if (searchMode === "bestSeller") {
+        return cart.products.some((p) => p.id === bestSellerProduct?.id);
+      }
 
-    return true;
-  });
-
+      return true;
+    });
+  }, [carts, searchMode, searchQuery, minPrice, maxPrice, bestSellerProduct]);
   const handleModeChange = useCallback((mode: string) => {
     setSearchMode(mode);
     setSearchQuery("");
@@ -166,7 +169,6 @@ function CartTable() {
       {!loading && !error && (
         <CartTables carts={filteredCarts} onSelectCart={setSelectedCart} />
       )}
-      // Modal hiển thị chi tiết giỏ hàng
       {selectedCart && (
         <CartDetailModal
           cart={selectedCart}
