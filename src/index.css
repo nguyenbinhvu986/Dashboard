@@ -1,4 +1,9 @@
 :root,
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 [data-theme="light"] {
   --bg-body: #f5f6f8;
   --bg-card: #ffffff;
@@ -35,6 +40,7 @@ body {
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
+  padding: 25px;
 }
 
 .btn {
@@ -98,8 +104,6 @@ body {
   top: 75%;
   transform: translateY(-50%);
 }
-
-.search-input,
 .search-mode-select {
   padding: 10px;
   border: 1px solid var(--border-input);
@@ -110,6 +114,7 @@ body {
 
 .search-input {
   width: 100%;
+  padding: 5px;
   padding-left: 30px;
 }
 

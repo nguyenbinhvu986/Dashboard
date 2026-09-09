@@ -112,10 +112,10 @@ function CartTable() {
         return cart.discountedTotal >= min && cart.discountedTotal <= max;
       }
 
-      if (searchMode === "topSpender") {
-        const maxSpending = Math.max(...carts.map((c) => c.discountedTotal));
-        return cart.discountedTotal === maxSpending;
-      }
+      const maxSpending = useMemo(() => {
+        if (searchMode !== "topSpender" || carts.length === 0) return null;
+        return Math.max(...carts.map((c) => c.discountedTotal));
+      }, [carts, searchMode]);
 
       if (searchMode === "bestSeller") {
         return cart.products.some((p) => p.id === bestSellerProduct?.id);
@@ -123,7 +123,7 @@ function CartTable() {
 
       return true;
     });
-  }, [carts, searchMode, searchQuery, minPrice, maxPrice, bestSellerProduct]);
+  }, [carts, searchMode, searchQuery, minPrice, maxPrice]);
   const handleModeChange = useCallback((mode: string) => {
     setSearchMode(mode);
     setSearchQuery("");
@@ -133,11 +133,13 @@ function CartTable() {
     console.log("Số lần đổi bộ lọc:", filterChangeCountRef.current);
   }, []);
 
-  const stats = {
-    totalRevenue: carts.reduce((sum, cart) => sum + cart.discountedTotal, 0),
-    totalOrders: carts.length,
-    productsSold: carts.reduce((sum, cart) => sum + cart.totalQuantity, 0),
-  };
+  const stats = useMemo(() => {
+    return {
+      totalRevenue: carts.reduce((sum, cart) => sum + cart.discountedTotal, 0),
+      totalOrders: carts.length,
+      productsSold: carts.reduce((sum, cart) => sum + cart.totalQuantity, 0),
+    };
+  }, [carts]);
 
   return (
     <>
