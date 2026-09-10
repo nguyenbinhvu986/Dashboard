@@ -5,6 +5,7 @@ import { FilterBar } from "./FilterBar";
 import { CartTables } from "./CartTable";
 import { CartDetailModal } from "./CartDetailModal";
 import type { CartProduct, Cart } from "./type";
+import { PaginationBar } from "./paginatedCarts";
 type Theme = "light" | "dark";
 
 function CartTable() {
@@ -27,6 +28,7 @@ function CartTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const filterChangeCountRef = useRef(0);
@@ -124,6 +126,23 @@ function CartTable() {
       return true;
     });
   }, [carts, searchMode, searchQuery, minPrice, maxPrice]);
+  // Phân trang
+  const itemsPerPage = 30;
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(filteredCarts.length / itemsPerPage));
+  }, [carts, filteredCarts]);
+  let pageNumbers = [];
+  for (let i = 1; i <= totalPages; i++) {
+    pageNumbers.push(i);
+  }
+  const paginatedCarts = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredCarts.slice(start, start + itemsPerPage);
+  }, [filteredCarts, currentPage, itemsPerPage]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchMode, searchQuery, minPrice, maxPrice]);
+
   const handleModeChange = (mode: string) => {
     setSearchMode(mode);
     setSearchQuery("");
@@ -170,7 +189,13 @@ function CartTable() {
         {loading && <div>Đang tải dữ liệu...</div>}
         {error && <div>{error}</div>}
         {!loading && !error && (
-          <CartTables carts={filteredCarts} onSelectCart={setSelectedCart} />
+          <>
+            <CartTables carts={paginatedCarts} onSelectCart={setSelectedCart} />
+            <PaginationBar
+              pageNumbers={pageNumbers}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
         {selectedCart && (
           <CartDetailModal
