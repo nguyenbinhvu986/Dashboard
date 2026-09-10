@@ -27,9 +27,9 @@ export function CartTables(props: CartTableProps) {
               <div>User {cart.userId}</div>
               <div>{cart.totalProducts}</div>
               <div>{cart.totalQuantity}</div>
-              <div>${cart.total.toFixed(2)}</div>
+              <div>${cart.total.toLocaleString()}</div>
               <div className="discounted">
-                ${cart.discountedTotal.toFixed(2)}
+                ${cart.discountedTotal.toLocaleString()}
               </div>
               <div>
                 <button

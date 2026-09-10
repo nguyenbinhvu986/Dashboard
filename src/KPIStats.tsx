@@ -13,7 +13,7 @@ export function KPIStats(props: KPIStatsProps) {
         </div>
         <div className="name-text">
           <p className="name-text-header">TỔNG DOANH THU (ĐÃ GIẢM GIÁ)</p>
-          <div className="value">${props.totalRevenue.toFixed(2)}</div>
+          <div className="value">${props.totalRevenue.toLocaleString()}</div>
         </div>
       </div>
       <div className="name name-orders">
@@ -31,7 +31,7 @@ export function KPIStats(props: KPIStatsProps) {
         </div>
         <div className="name-text">
           <p className="name-text-header">SẢN PHẨM ĐÃ BÁN</p>
-          <div className="value">{props.productsSold}</div>
+          <div className="value">{props.productsSold.toLocaleString()}</div>
         </div>
       </div>
     </div>
