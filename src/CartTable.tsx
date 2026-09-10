@@ -12,10 +12,10 @@ export function CartTables(props: CartTableProps) {
         <div>Cart ID</div>
         <div>User ID</div>
         <div>Số loại SP</div>
-        <div>Tổng số lượng</div>
-        <div>Tổng tiền gốc</div>
-        <div>Thực thu (Sau giảm)</div>
-        <div>Hành động</div>
+        <div>Tổng Số Lượng</div>
+        <div>Tổng Tiền Gốc</div>
+        <div>Thực Thu (Sau Giảm)</div>
+        <div>Hành Động</div>
       </div>
       <div className="cart-table-wrapper">
         {props.carts.length === 0 ? (

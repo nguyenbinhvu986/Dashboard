@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import "./index.css";
 import { KPIStats } from "./KPIStats.tsx";
 import { FilterBar } from "./FilterBar";
@@ -144,7 +144,7 @@ function CartTable() {
   return (
     <>
       <div className="header">
-        <h1>🛒 Dashboard Quản Lý Giỏ Hành</h1>
+        <h1>Dashboard Quản Lý Giỏ Hàng</h1>
         <button className="btn" onClick={toggleTheme}>
           {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
         </button>
@@ -154,29 +154,31 @@ function CartTable() {
         totalOrders={stats.totalOrders}
         productsSold={stats.productsSold}
       />
-      <FilterBar
-        searchMode={searchMode}
-        searchQuery={searchQuery}
-        minPrice={minPrice}
-        maxPrice={maxPrice}
-        bestSellerProduct={bestSellerProduct}
-        searchInputRef={searchInputRef}
-        onModeChange={handleModeChange}
-        onSearchChange={setSearchQuery}
-        onMinPriceChange={setMinPrice}
-        onMaxPriceChange={setMaxPrice}
-      />
-      {loading && <div>Đang tải dữ liệu...</div>}
-      {error && <div>{error}</div>}
-      {!loading && !error && (
-        <CartTables carts={filteredCarts} onSelectCart={setSelectedCart} />
-      )}
-      {selectedCart && (
-        <CartDetailModal
-          cart={selectedCart}
-          onClose={() => setSelectedCart(null)}
+      <div className="table-card">
+        <FilterBar
+          searchMode={searchMode}
+          searchQuery={searchQuery}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          bestSellerProduct={bestSellerProduct}
+          searchInputRef={searchInputRef}
+          onModeChange={handleModeChange}
+          onSearchChange={setSearchQuery}
+          onMinPriceChange={setMinPrice}
+          onMaxPriceChange={setMaxPrice}
         />
-      )}
+        {loading && <div>Đang tải dữ liệu...</div>}
+        {error && <div>{error}</div>}
+        {!loading && !error && (
+          <CartTables carts={filteredCarts} onSelectCart={setSelectedCart} />
+        )}
+        {selectedCart && (
+          <CartDetailModal
+            cart={selectedCart}
+            onClose={() => setSelectedCart(null)}
+          />
+        )}
+      </div>
     </>
   );
 }
