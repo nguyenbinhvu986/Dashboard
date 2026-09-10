@@ -1,12 +1,17 @@
 type PaginationBarProps = {
-  pageNumbers: number[];
+  totalPages: number;
   onPageChange: (page: number) => void;
 };
 
 export function PaginationBar(props: PaginationBarProps) {
+  const pageNumbers = Array.from(
+    { length: props.totalPages },
+    (_, index) => index + 1,
+  );
+
   return (
     <div className="pagination-bar">
-      {props.pageNumbers.map((page) => {
+      {pageNumbers.map((page) => {
         return (
           <button
             key={page}

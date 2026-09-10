@@ -131,10 +131,6 @@ function CartTable() {
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(filteredCarts.length / itemsPerPage));
   }, [carts, filteredCarts]);
-  let pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) {
-    pageNumbers.push(i);
-  }
   const paginatedCarts = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredCarts.slice(start, start + itemsPerPage);
@@ -192,7 +188,7 @@ function CartTable() {
           <>
             <CartTables carts={paginatedCarts} onSelectCart={setSelectedCart} />
             <PaginationBar
-              pageNumbers={pageNumbers}
+              totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
           </>
