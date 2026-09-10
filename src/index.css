@@ -264,3 +264,8 @@ body {
   padding: 8px 12px;
   cursor: pointer;
 }
+.active {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border-color: var(--btn-bg);
+}

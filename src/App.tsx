@@ -190,6 +190,7 @@ function CartTable() {
             <PaginationBar
               totalPages={totalPages}
               onPageChange={setCurrentPage}
+              currentPage={currentPage}
             />
           </>
         )}

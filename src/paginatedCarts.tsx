@@ -1,5 +1,6 @@
 type PaginationBarProps = {
   totalPages: number;
+  currentPage: number;
   onPageChange: (page: number) => void;
 };
 
@@ -15,7 +16,11 @@ export function PaginationBar(props: PaginationBarProps) {
         return (
           <button
             key={page}
-            className="pagination-btn"
+            className={
+              page === props.currentPage
+                ? "pagination-btn active"
+                : "pagination-btn"
+            }
             onClick={() => props.onPageChange(page)}
           >
             {page}
