@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import "./index.css";
-import { KPIStats } from "./KPIStats.tsx";
-import { FilterBar } from "./FilterBar";
-import { CartTables } from "./CartTable";
-import { CartDetailModal } from "./CartDetailModal";
-import type { CartProduct, Cart } from "./type";
+import { KPIStats } from "./Dashboard/AdvancedKPI.tsx";
+import { FilterBar } from "./Dashboard/FilterPanel.tsx";
+import { CartTables } from "./Dashboard/CustomerCartTable.tsx";
+import { CartDetailModal } from "./Dashboard/CartDetailModal.tsx";
+import type { CartProduct, Cart, EnrichedCart } from "./types/cart";
+import type { User } from "./types/user";
 import { PaginationBar } from "./paginatedCarts";
 type Theme = "light" | "dark";
 
@@ -20,6 +21,7 @@ function CartTable() {
   };
 
   const [carts, setCarts] = useState<Cart[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [selectedCart, setSelectedCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,20 +34,43 @@ function CartTable() {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const filterChangeCountRef = useRef(0);
+  function enrichCarts(carts: Cart[], users: User[]): EnrichedCart[] {
+    const userMap = new Map<number, User>();
+
+    users.forEach((user) => {
+      userMap.set(user.id, user);
+    });
+
+    return carts.map((cart) => {
+      const matchedUser = userMap.get(cart.userId);
+
+      return {
+        ...cart,
+        user: matchedUser,
+      };
+    });
+  }
 
   useEffect(() => {
     setLoading(true);
     setError(null);
 
-    fetch("https://dummyjson.com/carts?limit=0")
+    Promise.all([
+      fetch("https://dummyjson.com/carts?limit=0"),
+      fetch("https://dummyjson.com/users?limit=0"),
+    ])
       .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Lỗi máy chủ: ${res.status}`);
+        if (!res[0].ok) {
+          throw new Error(`Lỗi máy chủ (carts): ${res[0].status}`);
         }
-        return res.json();
+        if (!res[1].ok) {
+          throw new Error(`Lỗi máy chủ (users): ${res[1].status}`);
+        }
+        return Promise.all([res[0].json(), res[1].json()]);
       })
       .then((data) => {
-        setCarts(data.carts);
+        setCarts(data[0].carts);
+        setUsers(data[1].users);
         setLoading(false);
       })
       .catch((err) => {
@@ -53,6 +78,9 @@ function CartTable() {
         setLoading(false);
       });
   }, []);
+  const enrichedCarts = useMemo(() => {
+    return enrichCarts(carts, users);
+  }, [carts, users]);
   // Tự động focus vào ô tìm kiếm khi component được render
   useEffect(() => {
     searchInputRef.current?.focus();
@@ -95,37 +123,43 @@ function CartTable() {
 
   //lọc giỏ hàng dựa trên chế độ tìm kiếm và các điều kiện khác
   const filteredCarts = useMemo(() => {
-    return carts.filter((cart) => {
+    return enrichedCarts.filter((enrichedCart) => {
       const query = searchQuery.trim();
 
       if (searchMode === "userId") {
-        return query === "" || cart.userId === Number(query);
+        return query === "" || enrichedCart.userId === Number(query);
       }
 
       if (searchMode === "productId") {
         return (
-          query === "" || cart.products.some((p) => String(p.id) === query)
+          query === "" ||
+          enrichedCart.products.some((p) => String(p.id) === query)
         );
       }
 
       if (searchMode === "priceRange") {
         const min = minPrice === "" ? 0 : Number(minPrice);
         const max = maxPrice === "" ? Infinity : Number(maxPrice);
-        return cart.discountedTotal >= min && cart.discountedTotal <= max;
+        return (
+          enrichedCart.discountedTotal >= min &&
+          enrichedCart.discountedTotal <= max
+        );
       }
 
       if (searchMode === "topSpender") {
         const maxSpending = Math.max(...carts.map((c) => c.discountedTotal));
-        return cart.discountedTotal === maxSpending;
+        return enrichedCart.discountedTotal === maxSpending;
       }
 
       if (searchMode === "bestSeller") {
-        return cart.products.some((p) => p.id === bestSellerProduct?.id);
+        return enrichedCart.products.some(
+          (p) => p.id === bestSellerProduct?.id,
+        );
       }
 
       return true;
     });
-  }, [carts, searchMode, searchQuery, minPrice, maxPrice]);
+  }, [enrichedCarts, searchMode, searchQuery, minPrice, maxPrice]);
   // Phân trang
   const itemsPerPage = 30;
   const totalPages = useMemo(() => {

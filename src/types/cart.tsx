@@ -1,3 +1,4 @@
+import type { User } from "./user";
 export interface CartProduct {
   id: number;
   title: string;
@@ -16,4 +17,7 @@ export interface Cart {
   totalProducts: number;
   totalQuantity: number;
   products: CartProduct[];
+}
+export interface EnrichedCart extends Cart {
+  user: User | undefined;
 }

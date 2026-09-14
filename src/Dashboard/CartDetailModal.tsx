@@ -1,4 +1,4 @@
-import type { Cart } from "./type";
+import type { Cart } from "../types/cart";
 
 type CartDetailModalProps = {
   cart: Cart;
