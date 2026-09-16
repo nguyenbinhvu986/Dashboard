@@ -4,9 +4,11 @@ import { KPIStats } from "./Dashboard/AdvancedKPI.tsx";
 import { FilterBar } from "./Dashboard/FilterPanel.tsx";
 import { CartTables } from "./Dashboard/CustomerCartTable.tsx";
 import { CartDetailModal } from "./Dashboard/CartDetailModal.tsx";
-import type { CartProduct, Cart, EnrichedCart } from "./types/cart";
-import type { User } from "./types/user";
+import type { CartProduct, Cart } from "./types/cart";
+import { useECommerceData } from "./Hooks/useECommerceData";
+import { useDebounce } from "./Hooks/useDebounce";
 import { PaginationBar } from "./paginatedCarts";
+
 type Theme = "light" | "dark";
 
 function CartTable() {
@@ -19,68 +21,21 @@ function CartTable() {
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
-
-  const [carts, setCarts] = useState<Cart[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [sortField, setSortField] = useState("");
+  const [sortDirection, setSortDirection] = useState("default");
+  const ecommerceData = useECommerceData();
   const [selectedCart, setSelectedCart] = useState<Cart | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const [searchMode, setSearchMode] = useState("userId");
   const [searchQuery, setSearchQuery] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
+  const debouncedMinPrice = useDebounce(minPrice, 400);
+  const debouncedMaxPrice = useDebounce(maxPrice, 400);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const filterChangeCountRef = useRef(0);
-  function enrichCarts(carts: Cart[], users: User[]): EnrichedCart[] {
-    const userMap = new Map<number, User>();
-
-    users.forEach((user) => {
-      userMap.set(user.id, user);
-    });
-
-    return carts.map((cart) => {
-      const matchedUser = userMap.get(cart.userId);
-
-      return {
-        ...cart,
-        user: matchedUser,
-      };
-    });
-  }
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    Promise.all([
-      fetch("https://dummyjson.com/carts?limit=0"),
-      fetch("https://dummyjson.com/users?limit=0"),
-    ])
-      .then((res) => {
-        if (!res[0].ok) {
-          throw new Error(`Lỗi máy chủ (carts): ${res[0].status}`);
-        }
-        if (!res[1].ok) {
-          throw new Error(`Lỗi máy chủ (users): ${res[1].status}`);
-        }
-        return Promise.all([res[0].json(), res[1].json()]);
-      })
-      .then((data) => {
-        setCarts(data[0].carts);
-        setUsers(data[1].users);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError("Không thể tải dữ liệu giỏ hàng.");
-        setLoading(false);
-      });
-  }, []);
-  const enrichedCarts = useMemo(() => {
-    return enrichCarts(carts, users);
-  }, [carts, users]);
   // Tự động focus vào ô tìm kiếm khi component được render
   useEffect(() => {
     searchInputRef.current?.focus();
@@ -93,7 +48,7 @@ function CartTable() {
     const quantityMap = new Map<number, number>();
     const productMap = new Map<number, CartProduct>();
 
-    carts
+    ecommerceData.enrichedCarts
       .flatMap((cart) => cart.products)
       .forEach((product) => {
         quantityMap.set(
@@ -119,52 +74,68 @@ function CartTable() {
       return null;
     }
     return productMap.get(bestProductId) ?? null;
-  }, [carts, searchMode]);
+  }, [ecommerceData.enrichedCarts, searchMode]);
 
   //lọc giỏ hàng dựa trên chế độ tìm kiếm và các điều kiện khác
   const filteredCarts = useMemo(() => {
-    return enrichedCarts.filter((enrichedCart) => {
-      const query = searchQuery.trim();
+    return ecommerceData.enrichedCarts.filter((cart) => {
+      const query = debouncedSearchQuery.trim();
 
-      if (searchMode === "userId") {
-        return query === "" || enrichedCart.userId === Number(query);
+      if (searchMode === "customerInfo") {
+        if (query === "") {
+          return true;
+        }
+        const lowerQuery = query.toLowerCase();
+        const fullName =
+          cart.user === undefined
+            ? ""
+            : (cart.user.firstName + " " + cart.user.lastName).toLowerCase();
+        const email =
+          cart.user === undefined ? "" : cart.user.email.toLowerCase();
+        return fullName.includes(lowerQuery) || email.includes(lowerQuery);
       }
 
       if (searchMode === "productId") {
         return (
-          query === "" ||
-          enrichedCart.products.some((p) => String(p.id) === query)
+          query === "" || cart.products.some((p) => String(p.id) === query)
         );
       }
 
       if (searchMode === "priceRange") {
         const min = minPrice === "" ? 0 : Number(minPrice);
         const max = maxPrice === "" ? Infinity : Number(maxPrice);
-        return (
-          enrichedCart.discountedTotal >= min &&
-          enrichedCart.discountedTotal <= max
-        );
+        return cart.discountedTotal >= min && cart.discountedTotal <= max;
       }
 
       if (searchMode === "topSpender") {
-        const maxSpending = Math.max(...carts.map((c) => c.discountedTotal));
-        return enrichedCart.discountedTotal === maxSpending;
+        const maxSpending = Math.max(
+          ...ecommerceData.enrichedCarts.map((c) => c.discountedTotal),
+        );
+        return cart.discountedTotal === maxSpending;
       }
 
       if (searchMode === "bestSeller") {
-        return enrichedCart.products.some(
-          (p) => p.id === bestSellerProduct?.id,
-        );
+        return cart.products.some((p) => p.id === bestSellerProduct?.id);
       }
 
       return true;
     });
-  }, [enrichedCarts, searchMode, searchQuery, minPrice, maxPrice]);
+  }, [
+    ecommerceData.enrichedCarts,
+    searchMode,
+    debouncedSearchQuery,
+    debouncedMinPrice,
+    debouncedMaxPrice,
+  ]);
+  const handleSort = (field: string, direction: string) => {
+    setSortField(direction === "default" ? "" : field);
+    setSortDirection(direction);
+  };
   // Phân trang
   const itemsPerPage = 30;
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(filteredCarts.length / itemsPerPage));
-  }, [carts, filteredCarts]);
+  }, [ecommerceData.enrichedCarts, filteredCarts]);
   const paginatedCarts = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredCarts.slice(start, start + itemsPerPage);
@@ -184,11 +155,17 @@ function CartTable() {
 
   const stats = useMemo(() => {
     return {
-      totalRevenue: carts.reduce((sum, cart) => sum + cart.discountedTotal, 0),
-      totalOrders: carts.length,
-      productsSold: carts.reduce((sum, cart) => sum + cart.totalQuantity, 0),
+      totalRevenue: ecommerceData.enrichedCarts.reduce(
+        (sum, cart) => sum + cart.discountedTotal,
+        0,
+      ),
+      totalOrders: ecommerceData.enrichedCarts.length,
+      productsSold: ecommerceData.enrichedCarts.reduce(
+        (sum, cart) => sum + cart.totalQuantity,
+        0,
+      ),
     };
-  }, [carts]);
+  }, [ecommerceData.enrichedCarts]);
 
   return (
     <>
@@ -216,9 +193,9 @@ function CartTable() {
           onMinPriceChange={setMinPrice}
           onMaxPriceChange={setMaxPrice}
         />
-        {loading && <div>Đang tải dữ liệu...</div>}
-        {error && <div>{error}</div>}
-        {!loading && !error && (
+        {ecommerceData.loading && <div>Đang tải dữ liệu...</div>}
+        {ecommerceData.error && <div>{ecommerceData.error}</div>}
+        {!ecommerceData.loading && !ecommerceData.error && (
           <>
             <CartTables carts={paginatedCarts} onSelectCart={setSelectedCart} />
             <PaginationBar

@@ -23,8 +23,8 @@ export function FilterBar(props: FilterBarProps) {
           props.onModeChange(e.target.value);
         }}
       >
-        <option value="userId">Theo User ID</option>
         <option value="productId">Theo ID sản phẩm</option>
+        <option value="customerInfo">Theo thông tin khách hàng</option>
         <option value="priceRange">Theo khoảng giá</option>
         <option value="topSpender">Đơn hàng chi tiêu nhiều nhất</option>
         <option value="bestSeller">Sản phẩm bán chạy nhất</option>
@@ -53,7 +53,9 @@ export function FilterBar(props: FilterBarProps) {
         </>
       )}
 
-      {(props.searchMode === "userId" || props.searchMode === "productId") && (
+      {(props.searchMode === "userId" ||
+        props.searchMode === "productId" ||
+        props.searchMode === "customerInfo") && (
         <>
           <span className="search-icon">🔍</span>
           <input
@@ -61,8 +63,8 @@ export function FilterBar(props: FilterBarProps) {
             type="text"
             className="search-input"
             placeholder={
-              props.searchMode === "userId"
-                ? "Nhập User ID..."
+              props.searchMode === "customerInfo"
+                ? "Nhập thông tin khách hàng..."
                 : "Nhập ID sản phẩm..."
             }
             value={props.searchQuery}
