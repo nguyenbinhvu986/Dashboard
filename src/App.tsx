@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import "./index.css";
-import { KPIStats } from "./Dashboard/AdvancedKPI.tsx";
-import { FilterBar } from "./Dashboard/FilterPanel.tsx";
-import { CartTables } from "./Dashboard/CustomerCartTable.tsx";
-import { CartDetailModal } from "./Dashboard/CartDetailModal.tsx";
+import { KPIStats } from "./Components/Dashboard/AdvancedKPI.tsx";
+import { FilterBar } from "./Components/Dashboard/FilterPanel.tsx";
+import { CartTables } from "./Components/Dashboard/CustomerCartTable.tsx";
+import { CartDetailModal } from "./Components/Dashboard/CartDetailModal.tsx";
 import type { CartProduct, Cart } from "./types/cart";
 import { useECommerceData } from "./Hooks/useECommerceData";
 import { useDebounce } from "./Hooks/useDebounce";
-import { PaginationBar } from "./paginatedCarts";
+import { PaginationBar } from "./Components/Common/pagination.tsx";
+import { usePagination } from "./Hooks/usePagination";
 
 type Theme = "light" | "dark";
 
@@ -29,7 +30,6 @@ function CartTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
   const debouncedMinPrice = useDebounce(minPrice, 400);
   const debouncedMaxPrice = useDebounce(maxPrice, 400);
@@ -127,22 +127,11 @@ function CartTable() {
     debouncedMinPrice,
     debouncedMaxPrice,
   ]);
+  const pagination = usePagination(filteredCarts, 5);
   const handleSort = (field: string, direction: string) => {
     setSortField(direction === "default" ? "" : field);
     setSortDirection(direction);
   };
-  // Phân trang
-  const itemsPerPage = 30;
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(filteredCarts.length / itemsPerPage));
-  }, [ecommerceData.enrichedCarts, filteredCarts]);
-  const paginatedCarts = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredCarts.slice(start, start + itemsPerPage);
-  }, [filteredCarts, currentPage, itemsPerPage]);
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchMode, searchQuery, minPrice, maxPrice]);
 
   const handleModeChange = (mode: string) => {
     setSearchMode(mode);
@@ -197,11 +186,17 @@ function CartTable() {
         {ecommerceData.error && <div>{ecommerceData.error}</div>}
         {!ecommerceData.loading && !ecommerceData.error && (
           <>
-            <CartTables carts={paginatedCarts} onSelectCart={setSelectedCart} />
+            <CartTables
+              carts={pagination.paginatedItems}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              onSelectCart={setSelectedCart}
+            />
             <PaginationBar
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              onPageChange={pagination.setCurrentPage}
+              currentPage={pagination.currentPage}
             />
           </>
         )}

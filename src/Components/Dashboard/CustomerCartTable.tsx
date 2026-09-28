@@ -1,8 +1,10 @@
 import { useState } from "react";
-import type { EnrichedCart } from "../types/cart";
+import type { EnrichedCart } from "../../types/cart";
 
 type CartTableProps = {
   carts: EnrichedCart[];
+  sortField: string;
+  sortDirection: string;
   onSelectCart: (cart: EnrichedCart) => void;
   onSort: (field: string, direction: string) => void;
 };
@@ -12,11 +14,19 @@ export function CartTables(props: CartTableProps) {
   const [showDiscountedSort, setShowDiscountedSort] = useState(false);
   const [showCustomerSort, setShowCustomerSort] = useState(false);
 
+  const customerDirection =
+    props.sortField === "customerName" ? props.sortDirection : "default";
+  const quantityDirection =
+    props.sortField === "totalQuantity" ? props.sortDirection : "default";
+  const discountedDirection =
+    props.sortField === "discountedTotal" ? props.sortDirection : "default";
+
   return (
     <>
       <div className="data fix">
         <div>ID</div>
-        <div tabIndex={-1} onBlur={() => setShowCustomerSort(false)}>
+
+        <div>
           <button
             className="sorting customer-btn"
             onClick={() => setShowCustomerSort(!showCustomerSort)}
@@ -26,28 +36,51 @@ export function CartTables(props: CartTableProps) {
           {showCustomerSort && (
             <div className="sorting-dropdown customer">
               <button
-                className="sorting-customer-default"
-                onClick={() => props.onSort("customerName", "default")}
+                className={
+                  customerDirection === "default"
+                    ? "sort-option selected"
+                    : "sort-option"
+                }
+                onClick={() => {
+                  props.onSort("customerName", "default");
+                  setShowCustomerSort(false);
+                }}
               >
                 Mặc định
               </button>
               <button
-                className="sorting-customer-A-Z"
-                onClick={() => props.onSort("customerName", "asc")}
+                className={
+                  customerDirection === "asc"
+                    ? "sort-option selected"
+                    : "sort-option"
+                }
+                onClick={() => {
+                  props.onSort("customerName", "asc");
+                  setShowCustomerSort(false);
+                }}
               >
                 A-Z
               </button>
               <button
-                className="sorting-customer-Z-A"
-                onClick={() => props.onSort("customerName", "desc")}
+                className={
+                  customerDirection === "desc"
+                    ? "sort-option selected"
+                    : "sort-option"
+                }
+                onClick={() => {
+                  props.onSort("customerName", "desc");
+                  setShowCustomerSort(false);
+                }}
               >
                 Z-A
               </button>
             </div>
           )}
         </div>
+
         <div>Số loại SP</div>
-        <div tabIndex={-1} onBlur={() => setShowQuantitySort(false)}>
+
+        <div>
           <button
             className="sorting quantity-btn"
             onClick={() => setShowQuantitySort(!showQuantitySort)}
@@ -57,28 +90,51 @@ export function CartTables(props: CartTableProps) {
           {showQuantitySort && (
             <div className="sorting-dropdown quantity">
               <button
-                className="sorting-quantity-default"
-                onClick={() => props.onSort("totalQuantity", "default")}
+                className={
+                  quantityDirection === "default"
+                    ? "sort-option selected"
+                    : "sort-option"
+                }
+                onClick={() => {
+                  props.onSort("totalQuantity", "default");
+                  setShowQuantitySort(false);
+                }}
               >
                 Mặc định
               </button>
               <button
-                className="sorting-quantity-ascending"
-                onClick={() => props.onSort("totalQuantity", "asc")}
+                className={
+                  quantityDirection === "asc"
+                    ? "sort-option selected"
+                    : "sort-option"
+                }
+                onClick={() => {
+                  props.onSort("totalQuantity", "asc");
+                  setShowQuantitySort(false);
+                }}
               >
                 Tăng dần
               </button>
               <button
-                className="sorting-quantity-descending"
-                onClick={() => props.onSort("totalQuantity", "desc")}
+                className={
+                  quantityDirection === "desc"
+                    ? "sort-option selected"
+                    : "sort-option"
+                }
+                onClick={() => {
+                  props.onSort("totalQuantity", "desc");
+                  setShowQuantitySort(false);
+                }}
               >
                 Giảm dần
               </button>
             </div>
           )}
         </div>
+
         <div>Tổng Tiền Gốc</div>
-        <div tabIndex={-1} onBlur={() => setShowDiscountedSort(false)}>
+
+        <div>
           <button
             className="sorting discounted-btn"
             onClick={() => setShowDiscountedSort(!showDiscountedSort)}
@@ -88,28 +144,51 @@ export function CartTables(props: CartTableProps) {
           {showDiscountedSort && (
             <div className="sorting-dropdown discounted">
               <button
-                className="sorting-discounted-default"
-                onClick={() => props.onSort("discountedTotal", "default")}
+                className={
+                  discountedDirection === "default"
+                    ? "sort-option selected"
+                    : "sort-option"
+                }
+                onClick={() => {
+                  props.onSort("discountedTotal", "default");
+                  setShowDiscountedSort(false);
+                }}
               >
                 Mặc định
               </button>
               <button
-                className="sorting-discounted-ascending"
-                onClick={() => props.onSort("discountedTotal", "asc")}
+                className={
+                  discountedDirection === "asc"
+                    ? "sort-option selected"
+                    : "sort-option"
+                }
+                onClick={() => {
+                  props.onSort("discountedTotal", "asc");
+                  setShowDiscountedSort(false);
+                }}
               >
                 Tăng dần
               </button>
               <button
-                className="sorting-discounted-descending"
-                onClick={() => props.onSort("discountedTotal", "desc")}
+                className={
+                  discountedDirection === "desc"
+                    ? "sort-option selected"
+                    : "sort-option"
+                }
+                onClick={() => {
+                  props.onSort("discountedTotal", "desc");
+                  setShowDiscountedSort(false);
+                }}
               >
                 Giảm dần
               </button>
             </div>
           )}
         </div>
+
         <div>Hành Động</div>
       </div>
+
       <div className="cart-table-wrapper">
         {props.carts.length === 0 ? (
           <div className="no-result">Không tìm thấy kết quả phù hợp.</div>
