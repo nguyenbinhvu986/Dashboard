@@ -9,6 +9,7 @@ import { useECommerceData } from "./Hooks/useECommerceData";
 import { useDebounce } from "./Hooks/useDebounce";
 import { PaginationBar } from "./Components/Common/pagination.tsx";
 import { usePagination } from "./Hooks/usePagination";
+import { LoadingSpinner } from "./Components/Common/LoadingSpinner.tsx";
 
 type Theme = "light" | "dark";
 
@@ -127,7 +128,52 @@ function CartTable() {
     debouncedMinPrice,
     debouncedMaxPrice,
   ]);
-  const pagination = usePagination(filteredCarts, 5);
+  const sortedCarts = useMemo(() => {
+    if (sortField === "") {
+      return filteredCarts;
+    }
+    const sorted = [...filteredCarts];
+    if (sortField === "customerName") {
+      sorted.sort((a, b) => {
+        const nameA =
+          a.user === undefined
+            ? ""
+            : (a.user.firstName + " " + a.user.lastName).toLowerCase();
+        const nameB =
+          b.user === undefined
+            ? ""
+            : (b.user.firstName + " " + b.user.lastName).toLowerCase();
+        if (sortDirection === "asc") {
+          return nameA.localeCompare(nameB);
+        } else if (sortDirection === "desc") {
+          return nameB.localeCompare(nameA);
+        }
+        return 0;
+      });
+    } else if (sortField === "discountedTotal") {
+      sorted.sort((a, b) => {
+        if (sortDirection === "asc") {
+          return a.discountedTotal - b.discountedTotal;
+        } else if (sortDirection === "desc") {
+          return b.discountedTotal - a.discountedTotal;
+        }
+        return 0;
+      });
+    } else if (sortField === "totalQuantity") {
+      sorted.sort((a, b) => {
+        if (sortDirection === "asc") {
+          return a.totalQuantity - b.totalQuantity;
+        } else if (sortDirection === "desc") {
+          return b.totalQuantity - a.totalQuantity;
+        }
+        return 0;
+      });
+    }
+    return sorted;
+  }, [filteredCarts, sortField, sortDirection]);
+
+  const pagination = usePagination(sortedCarts, 5);
+
   const handleSort = (field: string, direction: string) => {
     setSortField(direction === "default" ? "" : field);
     setSortDirection(direction);
@@ -182,7 +228,8 @@ function CartTable() {
           onMinPriceChange={setMinPrice}
           onMaxPriceChange={setMaxPrice}
         />
-        {ecommerceData.loading && <div>Đang tải dữ liệu...</div>}
+
+        {ecommerceData.loading && <LoadingSpinner />}
         {ecommerceData.error && <div>{ecommerceData.error}</div>}
         {!ecommerceData.loading && !ecommerceData.error && (
           <>
@@ -195,8 +242,8 @@ function CartTable() {
             />
             <PaginationBar
               totalPages={pagination.totalPages}
-              onPageChange={pagination.setCurrentPage}
               currentPage={pagination.currentPage}
+              onPageChange={pagination.setCurrentPage}
             />
           </>
         )}
