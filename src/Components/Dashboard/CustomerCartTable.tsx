@@ -31,7 +31,7 @@ export function CartTables(props: CartTableProps) {
             className="sorting customer-btn"
             onClick={() => setShowCustomerSort(!showCustomerSort)}
           >
-            Khách hàng
+            Khách hàng ⬍
           </button>
           {showCustomerSort && (
             <div className="sorting-dropdown customer">
@@ -85,7 +85,7 @@ export function CartTables(props: CartTableProps) {
             className="sorting quantity-btn"
             onClick={() => setShowQuantitySort(!showQuantitySort)}
           >
-            Tổng lượng SP
+            Tổng lượng SP ⬍
           </button>
           {showQuantitySort && (
             <div className="sorting-dropdown quantity">
@@ -139,7 +139,7 @@ export function CartTables(props: CartTableProps) {
             className="sorting discounted-btn"
             onClick={() => setShowDiscountedSort(!showDiscountedSort)}
           >
-            Thực Thu(sau giảm)
+            Thực Thu(sau giảm) ⬍
           </button>
           {showDiscountedSort && (
             <div className="sorting-dropdown discounted">

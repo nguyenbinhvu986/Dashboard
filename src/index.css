@@ -130,10 +130,19 @@ body {
 }
 .search-mode-select {
   padding: 10px;
+  padding-right: 36px;
   border: 1px solid var(--border-input);
   border-radius: 4px;
   background-color: var(--bg-card);
   color: var(--text-primary);
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%23999' stroke-width='2' fill='none'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 12px 8px;
 }
 
 .search-input {
@@ -148,7 +157,9 @@ body {
   color: var(--text-primary);
   margin-bottom: 10px;
 }
-
+.best-seller-info {
+  margin-left: 10px;
+}
 .data {
   display: grid;
   grid-template-columns: 0.5fr 2.5fr 1fr 1.5fr 1.5fr 2fr 1fr;

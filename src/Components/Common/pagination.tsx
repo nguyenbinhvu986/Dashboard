@@ -22,11 +22,12 @@ function getPages(totalPages: number, currentPage: number) {
   }
 
   let start = currentPage;
-  if (start < 2) {
-    start = 2;
+  if (start < 3) {
+    start = 3;
   }
 
   pages.push(1);
+  pages.push(start - 1);
   pages.push(start);
   pages.push(start + 1);
   pages.push("...");
